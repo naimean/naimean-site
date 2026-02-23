@@ -106,13 +106,14 @@
       `;
     });
 
-    // Secret D → play sound → THEN redirect to correct path
+    // Secret D → play sound → THEN redirect
     document.getElementById("secretD").addEventListener("click", () => {
       const audio = new Audio("secret.mp3");
       audio.play();
 
       audio.onended = () => {
-        window.location.href = "naimean-site/backdoor.html";  // FINAL CORRECT PATH
+        // FINAL CORRECT PATH
+        window.location.href = "backdoor.html";
       };
     });
   </script>
