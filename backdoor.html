@@ -26,7 +26,7 @@
         top: 120px;
         right: 20px;
         width: 520px;
-        height: 520px;
+        height: 560px;
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #39ff14;
         box-shadow: 0 0 15px #39ff14;
@@ -81,12 +81,18 @@
         color: red;
     }
 
-    input, button {
+    input[type="text"], button {
         width: 100%;
         padding: 8px;
         margin-top: 5px;
         background: #000;
         border: 1px solid #39ff14;
+        color: #39ff14;
+    }
+
+    input[type="file"] {
+        margin-top: 5px;
+        width: 100%;
         color: #39ff14;
     }
 
@@ -148,6 +154,7 @@
 
     <input type="text" id="name" placeholder="Your name">
     <input type="text" id="message" placeholder="Your message (text, links, images)">
+    <input type="file" id="shoutFile" accept="image/*">
     <button onclick="sendMessage()">Send</button>
 </div>
 
@@ -175,12 +182,16 @@
 </div>
 
 <script>
+    // --- GitHub config (fill this in locally) ---
+    const GITHUB_USER = "naimean";
+    const GITHUB_REPO = "naimean-site";
+    const GITHUB_BRANCH = "main";
+    const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE"; // do NOT commit
+
     function formatMessageText(text) {
-        // First, replace image URLs with just the image (no visible URL)
         const imageRegex = /(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp))/gi;
         text = text.replace(imageRegex, url => `<img class="embeddedImage" src="${url}">`);
 
-        // Then, turn remaining URLs into links
         const urlRegex = /(https?:\/\/[^\s]+)/gi;
         text = text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color:#39ff14;">${url}</a>`);
 
@@ -231,28 +242,117 @@
         container.scrollTop = container.scrollHeight;
     }
 
-    function sendMessage() {
+    function getShoutGalleryList() {
+        const raw = JSON.parse(localStorage.getItem("shoutGallery")) || [];
+        return raw.map(item => {
+            if (typeof item === "string") {
+                return { url: item };
+            }
+            return item;
+        });
+    }
+
+    function saveShoutGalleryList(list) {
+        localStorage.setItem("shoutGallery", JSON.stringify(list));
+    }
+
+    function addToShoutGalleryFromUrl(url) {
+        const list = getShoutGalleryList();
+        list.push({ url });
+        saveShoutGalleryList(list);
+    }
+
+    function addToShoutGalleryFromMeta(meta) {
+        const list = getShoutGalleryList();
+        list.push(meta);
+        saveShoutGalleryList(list);
+    }
+
+    async function uploadShoutFileToGitHub(file) {
+        if (!GITHUB_TOKEN) {
+            alert("GitHub token not set in backdoor.html");
+            throw new Error("Missing token");
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+        const folder = "gallery/shoutbox";
+        const filename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+        const path = `${folder}/${filename}`;
+
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `Add shoutbox image to ${folder}`,
+                content: base64,
+                branch: GITHUB_BRANCH
+            })
+        });
+
+        if (!res.ok) {
+            alert("GitHub upload failed from shoutbox.");
+            throw new Error("GitHub upload failed");
+        }
+
+        const data = await res.json();
+        return {
+            url: data.content.download_url,
+            path: data.content.path,
+            sha: data.content.sha
+        };
+    }
+
+    async function sendMessage() {
         const name = document.getElementById("name").value.trim();
-        const text = document.getElementById("message").value.trim();
+        const textInput = document.getElementById("message");
+        const fileInput = document.getElementById("shoutFile");
+
+        let text = textInput.value.trim();
+        const file = fileInput.files[0];
 
         if (!name) {
             alert("Enter your name first.");
             return;
         }
-        if (!text) return;
+        if (!text && !file) return;
 
         localStorage.setItem("shoutboxName", name);
+
+        let finalText = text;
+
+        // If there's a file, upload it to GitHub and use its URL as the message text
+        if (file) {
+            try {
+                const meta = await uploadShoutFileToGitHub(file);
+                finalText = meta.url;
+                addToShoutGalleryFromMeta(meta);
+            } catch (e) {
+                console.error(e);
+                return;
+            }
+        } else {
+            // No file, but if text contains image URLs, add them to ShoutBox Gallery
+            const imageRegex = /(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp))/gi;
+            const matches = text.match(imageRegex);
+            if (matches) {
+                matches.forEach(url => addToShoutGalleryFromUrl(url));
+            }
+        }
 
         const now = new Date();
         const timestamp = now.toLocaleString();
 
         const messages = JSON.parse(localStorage.getItem("shoutboxMessages")) || [];
-
-        messages.push({ name, text, time: timestamp });
-
+        messages.push({ name, text: finalText, time: timestamp });
         localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
 
-        document.getElementById("message").value = "";
+        textInput.value = "";
+        fileInput.value = "";
         loadMessages();
     }
 
