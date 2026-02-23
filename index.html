@@ -1,86 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Do You Naimean</title>
-
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(180deg, #000000, #0a0a0a, #111111);
-      font-family: Arial, sans-serif;
-      color: #00ff66;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 900;
-      letter-spacing: 2px;
-      margin-bottom: 40px;
-      background: linear-gradient(180deg, #00ff66, #00cc55);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    #secretD {
-      cursor: pointer;
-    }
-
-    button {
-      padding: 12px 30px;
-      font-size: 1.3rem;
-      border-radius: 10px;
-      border: 2px solid #00ff66;
-      background: transparent;
-      color: #00ff66;
-      cursor: pointer;
-      font-weight: bold;
-      margin-bottom: 25px;
-    }
-
-    button:hover {
-      background: #00ff66;
-      color: black;
-    }
-
-    .counter-label {
-      margin-top: 20px;
-      font-size: 1.2rem;
-      opacity: 0.8;
-    }
-
-    .counter-value {
-      font-size: 2rem;
-      font-weight: bold;
-      margin-top: 5px;
-    }
-
-    video {
-      width: 100%;
-      height: auto;
-    }
-  </style>
-</head>
-
 <body>
 
+  <!-- HEADER WITH CLICKABLE D -->
   <h1>
     <span id="secretD">D</span>O YOU NAIMEAN
   </h1>
 
+  <!-- MEANING BUTTON -->
   <button id="meaningBtn">MEANING?</button>
 
+  <!-- COUNTER -->
   <div class="counter-label"># of barrel rolls:</div>
   <div class="counter-value" id="counter">0</div>
 
+  <!-- SCRIPT (MUST BE AT THE BOTTOM) -->
   <script>
     // Load saved count
     let count = localStorage.getItem("barrelRolls") || 0;
@@ -100,7 +32,7 @@
 
     // Zelda sound + backdoor page
     document.getElementById("secretD").addEventListener("click", () => {
-      const audio = new Audio("zelda.mp3"); // upload this file
+      const audio = new Audio("zelda.mp3");
       audio.play();
 
       audio.onended = () => {
@@ -110,4 +42,3 @@
   </script>
 
 </body>
-</html>
