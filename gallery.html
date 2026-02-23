@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gallery</title>
+<style>
+    body {
+        background-color: #000;
+        color: #39ff14;
+        font-family: "Courier New", monospace;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1, h2 {
+        text-align: center;
+        text-shadow: 0 0 10px #39ff14;
+    }
+
+    .gallerySection {
+        margin-bottom: 50px;
+    }
+
+    .uploadRow {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .uploadRow input {
+        background: #000;
+        border: 1px solid #39ff14;
+        color: #39ff14;
+        padding: 8px;
+        width: 250px;
+    }
+
+    .uploadRow button {
+        background: #000;
+        border: 1px solid #39ff14;
+        color: #39ff14;
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    .uploadRow button:hover {
+        background: #39ff14;
+        color: #000;
+    }
+
+    .thumbStrip {
+        display: flex;
+        overflow-x: auto;
+        gap: 15px;
+        padding: 10px;
+        border: 2px solid #39ff14;
+        background: rgba(0,0,0,0.4);
+        white-space: nowrap;
+    }
+
+    .thumbStrip img {
+        height: 120px;
+        border: 2px solid #39ff14;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .thumbStrip img:hover {
+        transform: scale(1.1);
+    }
+
+    /* FULLSCREEN VIEWER */
+    #viewer {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.95);
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    #viewer img {
+        max-width: 95%;
+        max-height: 95%;
+        border: 2px solid #39ff14;
+        box-shadow: 0 0 20px #39ff14;
+    }
+
+    #viewerClose {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        font-size: 2rem;
+        color: #39ff14;
+        cursor: pointer;
+        text-shadow: 0 0 10px #39ff14;
+    }
+</style>
+</head>
+<body>
+
+<h1>Gallery</h1>
+
+<!-- FULLSCREEN VIEWER -->
+<div id="viewer" onclick="closeViewer()">
+    <span id="viewerClose">✖</span>
+    <img id="viewerImg">
+</div>
+
+<!-- TOP GALLERY -->
+<div class="gallerySection">
+    <h2>Top Gallery</h2>
+
+    <div class="uploadRow">
+        <input type="text" id="topUrl" placeholder="Paste image URL">
+        <button onclick="addImage('top')">Upload New Art</button>
+    </div>
+
+    <div class="thumbStrip" id="topStrip"></div>
+</div>
+
+<!-- BOTTOM GALLERY -->
+<div class="gallerySection">
+    <h2>Bottom Gallery</h2>
+
+    <div class="uploadRow">
+        <input type="text" id="bottomUrl" placeholder="Paste image URL">
+        <button onclick="addImage('bottom')">Upload New Art</button>
+    </div>
+
+    <div class="thumbStrip" id="bottomStrip"></div>
+</div>
+
+<script>
+    function loadGallery() {
+        const top = JSON.parse(localStorage.getItem("topGallery")) || [];
+        const bottom = JSON.parse(localStorage.getItem("bottomGallery")) || [];
+
+        const topStrip = document.getElementById("topStrip");
+        const bottomStrip = document.getElementById("bottomStrip");
+
+        topStrip.innerHTML = "";
+        bottomStrip.innerHTML = "";
+
+        top.forEach(url => {
+            const img = document.createElement("img");
+            img.src = url;
+            img.onclick = () => openViewer(url);
+            topStrip.appendChild(img);
+        });
+
+        bottom.forEach(url => {
+            const img = document.createElement("img");
+            img.src = url;
+            img.onclick = () => openViewer(url);
+            bottomStrip.appendChild(img);
+        });
+    }
+
+    function addImage(section) {
+        const input = document.getElementById(section + "Url");
+        const url = input.value.trim();
+        if (!url) return;
+
+        const key = section === "top" ? "topGallery" : "bottomGallery";
+        const list = JSON.parse(localStorage.getItem(key)) || [];
+
+        list.push(url);
+        localStorage.setItem(key, JSON.stringify(list));
+
+        input.value = "";
+        loadGallery();
+    }
+
+    function openViewer(url) {
+        document.getElementById("viewerImg").src = url;
+        document.getElementById("viewer").style.display = "flex";
+    }
+
+    function closeViewer() {
+        document.getElementById("viewer").style.display = "none";
+    }
+
+    loadGallery();
+</script>
+
+</body>
+</html>
