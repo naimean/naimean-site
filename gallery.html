@@ -96,14 +96,27 @@
         box-shadow: 0 0 20px #39ff14;
     }
 
-    #viewerClose {
+    #viewerButtons {
         position: fixed;
         top: 20px;
         right: 30px;
-        font-size: 2rem;
-        color: #39ff14;
+        display: flex;
+        gap: 15px;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    #viewerButtons span {
         cursor: pointer;
         text-shadow: 0 0 10px #39ff14;
+    }
+
+    #viewerBtnDelete {
+        color: red;
+    }
+
+    #viewerBtnR, #viewerBtnM {
+        color: #39ff14;
     }
 
     a {
@@ -119,8 +132,12 @@
 <a href="backdoor.html">&larr; Back to Backdoor</a>
 
 <!-- FULLSCREEN VIEWER -->
-<div id="viewer" onclick="closeViewer()">
-    <span id="viewerClose">✖</span>
+<div id="viewer" onclick="closeViewer(event)">
+    <div id="viewerButtons">
+        <span id="viewerBtnDelete" onclick="deleteCurrent(event)">X</span>
+        <span id="viewerBtnR" onclick="moveCurrent(event, 'rad')">R</span>
+        <span id="viewerBtnM" onclick="moveCurrent(event, 'mad')">M</span>
+    </div>
     <img id="viewerImg">
 </div>
 
@@ -150,143 +167,250 @@
     <div class="thumbStrip" id="madStrip"></div>
 </div>
 
-<!-- MISC GALLERY -->
+<!-- SHOUTBOX GALLERY -->
 <div class="gallerySection">
-    <h2>Misc. Gallery</h2>
+    <h2>ShoutBox Gallery</h2>
 
     <div class="uploadRow">
-        <input type="text" id="miscUrl" placeholder="Paste image URL">
-        <input type="file" id="miscFile" accept="image/*">
-        <button onclick="addImage('misc')">Upload New Art</button>
+        <input type="text" id="shoutUrl" placeholder="Paste image URL">
+        <input type="file" id="shoutFile" accept="image/*">
+        <button onclick="addImage('shout')">Upload New Art</button>
     </div>
 
-    <div class="thumbStrip" id="miscStrip"></div>
+    <div class="thumbStrip" id="shoutStrip"></div>
 </div>
 
 <script>
-    // --- GitHub config (fill in your token locally) ---
+    // --- GitHub config (fill this in locally) ---
     const GITHUB_USER = "naimean";
     const GITHUB_REPO = "naimean-site";
     const GITHUB_BRANCH = "main";
-    const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE"; // <-- set this locally, do NOT commit
+    const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE"; // do NOT commit
+
+    let currentSection = null;
+    let currentIndex = null;
 
     function galleryKey(section) {
         if (section === "rad") return "radGallery";
         if (section === "mad") return "madGallery";
-        return "miscGallery";
+        return "shoutGallery";
     }
 
     function galleryFolder(section) {
         if (section === "rad") return "gallery/rad";
         if (section === "mad") return "gallery/mad";
-        return "gallery/misc";
+        return "gallery/shoutbox";
+    }
+
+    function normalizeList(raw) {
+        return (raw || []).map(item => {
+            if (typeof item === "string") {
+                return { url: item };
+            }
+            return item;
+        });
+    }
+
+    function getGalleryList(section) {
+        const key = galleryKey(section);
+        const raw = JSON.parse(localStorage.getItem(key)) || [];
+        return normalizeList(raw);
+    }
+
+    function saveGalleryList(section, list) {
+        const key = galleryKey(section);
+        localStorage.setItem(key, JSON.stringify(list));
     }
 
     function loadGallery() {
-        const rad = JSON.parse(localStorage.getItem("radGallery")) || [];
-        const mad = JSON.parse(localStorage.getItem("madGallery")) || [];
-        const misc = JSON.parse(localStorage.getItem("miscGallery")) || [];
+        const rad = getGalleryList("rad");
+        const mad = getGalleryList("mad");
+        const shout = getGalleryList("shout");
 
         const radStrip = document.getElementById("radStrip");
         const madStrip = document.getElementById("madStrip");
-        const miscStrip = document.getElementById("miscStrip");
+        const shoutStrip = document.getElementById("shoutStrip");
 
         radStrip.innerHTML = "";
         madStrip.innerHTML = "";
-        miscStrip.innerHTML = "";
+        shoutStrip.innerHTML = "";
 
-        rad.forEach(url => {
+        rad.forEach((item, index) => {
             const img = document.createElement("img");
-            img.src = url;
-            img.onclick = () => openViewer(url);
+            img.src = item.url;
+            img.onclick = () => openViewer("rad", index);
             radStrip.appendChild(img);
         });
 
-        mad.forEach(url => {
+        mad.forEach((item, index) => {
             const img = document.createElement("img");
-            img.src = url;
-            img.onclick = () => openViewer(url);
+            img.src = item.url;
+            img.onclick = () => openViewer("mad", index);
             madStrip.appendChild(img);
         });
 
-        misc.forEach(url => {
+        shout.forEach((item, index) => {
             const img = document.createElement("img");
-            img.src = url;
-            img.onclick = () => openViewer(url);
-            miscStrip.appendChild(img);
+            img.src = item.url;
+            img.onclick = () => openViewer("shout", index);
+            shoutStrip.appendChild(img);
         });
     }
 
+    async function uploadFileToGitHub(section, file) {
+        if (!GITHUB_TOKEN) {
+            alert("GitHub token not set in gallery.html");
+            throw new Error("Missing token");
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+        const folder = galleryFolder(section);
+        const filename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+        const path = `${folder}/${filename}`;
+
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `Add image to ${folder}`,
+                content: base64,
+                branch: GITHUB_BRANCH
+            })
+        });
+
+        if (!res.ok) {
+            alert("GitHub upload failed.");
+            throw new Error("GitHub upload failed");
+        }
+
+        const data = await res.json();
+        return {
+            url: data.content.download_url,
+            path: data.content.path,
+            sha: data.content.sha
+        };
+    }
+
     async function addImage(section) {
-        const urlInput = document.getElementById(section + "Url");
-        const fileInput = document.getElementById(section + "File");
+        const urlInput = document.getElementById(
+            section === "shout" ? "shoutUrl" : section + "Url"
+        );
+        const fileInput = document.getElementById(
+            section === "shout" ? "shoutFile" : section + "File"
+        );
 
         const pastedUrl = urlInput.value.trim();
         const file = fileInput.files[0];
 
         if (!pastedUrl && !file) return;
 
-        let finalUrl = null;
+        let meta = null;
 
-        // If file selected, upload to GitHub
         if (file) {
             try {
-                const arrayBuffer = await file.arrayBuffer();
-                const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-
-                const folder = galleryFolder(section);
-                const filename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-                const path = `${folder}/${filename}`;
-
-                const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`, {
-                    method: "PUT",
-                    headers: {
-                        "Authorization": `Bearer ${GITHUB_TOKEN}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        message: `Add image to ${folder}`,
-                        content: base64,
-                        branch: GITHUB_BRANCH
-                    })
-                });
-
-                if (!res.ok) {
-                    alert("GitHub upload failed.");
-                    return;
-                }
-
-                const data = await res.json();
-                finalUrl = data.content.download_url;
+                meta = await uploadFileToGitHub(section, file);
             } catch (e) {
                 console.error(e);
-                alert("Error uploading image.");
                 return;
             }
         } else if (pastedUrl) {
-            // For pasted URLs, just use the URL directly
-            finalUrl = pastedUrl;
+            meta = { url: pastedUrl };
         }
 
-        if (!finalUrl) return;
+        if (!meta) return;
 
-        const key = galleryKey(section);
-        const list = JSON.parse(localStorage.getItem(key)) || [];
-        list.push(finalUrl);
-        localStorage.setItem(key, JSON.stringify(list));
+        const list = getGalleryList(section);
+        list.push(meta);
+        saveGalleryList(section, list);
 
         urlInput.value = "";
         fileInput.value = "";
         loadGallery();
     }
 
-    function openViewer(url) {
-        document.getElementById("viewerImg").src = url;
+    function openViewer(section, index) {
+        currentSection = section;
+        currentIndex = index;
+
+        const list = getGalleryList(section);
+        const item = list[index];
+        if (!item) return;
+
+        document.getElementById("viewerImg").src = item.url;
         document.getElementById("viewer").style.display = "flex";
     }
 
-    function closeViewer() {
+    function closeViewer(event) {
+        // prevent closing when clicking buttons
+        if (event && event.target && event.target.id.startsWith("viewerBtn")) return;
         document.getElementById("viewer").style.display = "none";
+        currentSection = null;
+        currentIndex = null;
+    }
+
+    async function deleteCurrent(event) {
+        event.stopPropagation();
+        if (currentSection === null || currentIndex === null) return;
+
+        const list = getGalleryList(currentSection);
+        const item = list[currentIndex];
+        if (!item) return;
+
+        // Delete from GitHub if we have path + sha
+        if (item.path && item.sha && GITHUB_TOKEN) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${item.path}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: `Delete image ${item.path}`,
+                        sha: item.sha,
+                        branch: GITHUB_BRANCH
+                    })
+                });
+
+                if (!res.ok) {
+                    console.error("GitHub delete failed");
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        list.splice(currentIndex, 1);
+        saveGalleryList(currentSection, list);
+        closeViewer();
+        loadGallery();
+    }
+
+    function moveCurrent(event, targetSection) {
+        event.stopPropagation();
+        if (currentSection === null || currentIndex === null) return;
+        if (targetSection !== "rad" && targetSection !== "mad") return;
+
+        const fromList = getGalleryList(currentSection);
+        const item = fromList[currentIndex];
+        if (!item) return;
+
+        // Remove from current
+        fromList.splice(currentIndex, 1);
+        saveGalleryList(currentSection, fromList);
+
+        // Add to target (local classification only; file stays where it is in GitHub)
+        const toList = getGalleryList(targetSection);
+        toList.push(item);
+        saveGalleryList(targetSection, toList);
+
+        closeViewer();
+        loadGallery();
     }
 
     loadGallery();
