@@ -20,7 +20,7 @@
         text-shadow: 0 0 10px #39ff14;
     }
 
-    /* SHOUTBOX CONTAINER (Wider + Lower) */
+    /* SHOUTBOX CONTAINER */
     #shoutbox {
         position: fixed;
         top: 120px;
@@ -48,15 +48,37 @@
     }
 
     .msgRow {
-        margin-bottom: 12px;
-        padding-bottom: 8px;
+        margin-bottom: 10px;
+        padding-bottom: 6px;
         border-bottom: 1px solid #39ff14;
     }
 
+    .msgHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .msgHeader span {
+        font-weight: bold;
+    }
+
+    .msgButtons {
+        display: flex;
+        gap: 6px;
+    }
+
     .msgButtons button {
-        margin-right: 5px;
-        padding: 2px 6px;
-        font-size: 0.7rem;
+        background: none;
+        border: none;
+        color: #39ff14;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .msgButtons button:hover {
+        color: red;
     }
 
     input, button {
@@ -147,21 +169,11 @@
 
 <script>
     function formatMessageText(text) {
-        // Detect image URLs
         const imageRegex = /(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp))/gi;
+        text = text.replace(imageRegex, url => `<br><img class="embeddedImage" src="${url}">`);
 
-        // Replace image URLs with <img>
-        text = text.replace(imageRegex, url => {
-            return `<br><img class="embeddedImage" src="${url}">`;
-        });
-
-        // Detect regular URLs
         const urlRegex = /(https?:\/\/[^\s]+)/gi;
-
-        // Replace URLs with clickable links
-        text = text.replace(urlRegex, url => {
-            return `<a href="${url}" target="_blank" style="color:#39ff14;">${url}</a>`;
-        });
+        text = text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color:#39ff14;">${url}</a>`);
 
         return text;
     }
@@ -175,25 +187,34 @@
             const row = document.createElement("div");
             row.className = "msgRow";
 
-            const content = document.createElement("div");
-            content.innerHTML = `<strong>[${entry.time}] ${entry.name}:</strong><br>${formatMessageText(entry.text)}`;
+            const header = document.createElement("div");
+            header.className = "msgHeader";
+
+            const nameTime = document.createElement("span");
+            nameTime.textContent = `[${entry.time}] ${entry.name}`;
 
             const btns = document.createElement("div");
             btns.className = "msgButtons";
 
             const editBtn = document.createElement("button");
-            editBtn.textContent = "Edit";
+            editBtn.innerHTML = "✏️";
             editBtn.onclick = () => editMessage(index);
 
             const delBtn = document.createElement("button");
-            delBtn.textContent = "Delete";
+            delBtn.innerHTML = "❌";
             delBtn.onclick = () => deleteMessage(index);
 
             btns.appendChild(editBtn);
             btns.appendChild(delBtn);
 
+            header.appendChild(nameTime);
+            header.appendChild(btns);
+
+            const content = document.createElement("div");
+            content.innerHTML = formatMessageText(entry.text);
+
+            row.appendChild(header);
             row.appendChild(content);
-            row.appendChild(btns);
 
             container.appendChild(row);
         });
@@ -202,11 +223,8 @@
     }
 
     function sendMessage() {
-        const nameInput = document.getElementById("name");
-        const messageInput = document.getElementById("message");
-
-        const name = nameInput.value.trim();
-        const text = messageInput.value.trim();
+        const name = document.getElementById("name").value.trim();
+        const text = document.getElementById("message").value.trim();
 
         if (!name) {
             alert("Enter your name first.");
@@ -221,15 +239,11 @@
 
         const messages = JSON.parse(localStorage.getItem("shoutboxMessages")) || [];
 
-        messages.push({
-            name: name,
-            text: text,
-            time: timestamp
-        });
+        messages.push({ name, text, time: timestamp });
 
         localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
 
-        messageInput.value = "";
+        document.getElementById("message").value = "";
         loadMessages();
     }
 
@@ -253,9 +267,7 @@
 
     window.onload = () => {
         const savedName = localStorage.getItem("shoutboxName");
-        if (savedName) {
-            document.getElementById("name").value = savedName;
-        }
+        if (savedName) document.getElementById("name").value = savedName;
         loadMessages();
     };
 </script>
