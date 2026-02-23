@@ -1,3 +1,9 @@
+Here you go, Matt — both updated files, ready to paste.
+
+---
+
+✅ `backdoor.html`
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -325,7 +331,6 @@
 
         let finalText = text;
 
-        // If there's a file, upload it to GitHub and use its URL as the message text
         if (file) {
             try {
                 const meta = await uploadShoutFileToGitHub(file);
@@ -336,7 +341,6 @@
                 return;
             }
         } else {
-            // No file, but if text contains image URLs, add them to ShoutBox Gallery
             const imageRegex = /(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp))/gi;
             const matches = text.match(imageRegex);
             if (matches) {
@@ -383,3 +387,309 @@
 
 </body>
 </html>
+
+
+---
+
+✅ `gallery.html` (file‑only upload, progress bar + %, X/R/M)
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gallery</title>
+<style>
+    body {
+        background-color: #000;
+        color: #39ff14;
+        font-family: "Courier New", monospace;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1, h2 {
+        text-align: center;
+        text-shadow: 0 0 10px #39ff14;
+    }
+
+    .gallerySection {
+        margin-bottom: 50px;
+    }
+
+    .uploadRow {
+        text-align: center;
+        margin-bottom: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .uploadRow input[type="file"] {
+        color: #39ff14;
+    }
+
+    .uploadRow button {
+        background: #000;
+        border: 1px solid #39ff14;
+        color: #39ff14;
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    .uploadRow button:hover {
+        background: #39ff14;
+        color: #000;
+    }
+
+    .progressRow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .progressBar {
+        width: 260px;
+        height: 12px;
+        border: 1px solid #39ff14;
+        background: rgba(0,0,0,0.6);
+        overflow: hidden;
+    }
+
+    .progressFill {
+        height: 100%;
+        width: 0%;
+        background: #39ff14;
+        transition: width 0.15s linear;
+    }
+
+    .progressText {
+        min-width: 40px;
+        text-align: left;
+        font-size: 0.9rem;
+    }
+
+    .thumbStrip {
+        display: flex;
+        overflow-x: auto;
+        gap: 15px;
+        padding: 10px;
+        border: 2px solid #39ff14;
+        background: rgba(0,0,0,0.4);
+        white-space: nowrap;
+    }
+
+    .thumbStrip img {
+        height: 120px;
+        border: 2px solid #39ff14;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .thumbStrip img:hover {
+        transform: scale(1.1);
+    }
+
+    /* FULLSCREEN VIEWER */
+    #viewer {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.95);
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    #viewer img {
+        max-width: 95%;
+        max-height: 95%;
+        border: 2px solid #39ff14;
+        box-shadow: 0 0 20px #39ff14;
+    }
+
+    #viewerButtons {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        display: flex;
+        gap: 15px;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    #viewerButtons span {
+        cursor: pointer;
+        text-shadow: 0 0 10px #39ff14;
+    }
+
+    #viewerBtnDelete {
+        color: red;
+    }
+
+    #viewerBtnR, #viewerBtnM {
+        color: #39ff14;
+    }
+
+    a {
+        color: #39ff14;
+        text-decoration: none;
+    }
+</style>
+</head>
+<body>
+
+<h1>Gallery</h1>
+
+<a href="backdoor.html">&larr; Back to Backdoor</a>
+
+<!-- FULLSCREEN VIEWER -->
+<div id="viewer" onclick="closeViewer(event)">
+    <div id="viewerButtons">
+        <span id="viewerBtnDelete" onclick="deleteCurrent(event)">X</span>
+        <span id="viewerBtnR" onclick="moveCurrent(event, 'rad')">R</span>
+        <span id="viewerBtnM" onclick="moveCurrent(event, 'mad')">M</span>
+    </div>
+    <img id="viewerImg">
+</div>
+
+<!-- RAD GALLERY -->
+<div class="gallerySection">
+    <h2>RAD Gallery</h2>
+
+    <div class="uploadRow">
+        <input type="file" id="radFile" accept="image/*">
+        <button onclick="addImage('rad')">Upload New Art</button>
+    </div>
+
+    <div class="progressRow">
+        <div class="progressBar">
+            <div id="radProgressFill" class="progressFill"></div>
+        </div>
+        <span id="radProgressText" class="progressText"></span>
+    </div>
+
+    <div class="thumbStrip" id="radStrip"></div>
+</div>
+
+<!-- MAD GALLERY -->
+<div class="gallerySection">
+    <h2>MAD Gallery</h2>
+
+    <div class="uploadRow">
+        <input type="file" id="madFile" accept="image/*">
+        <button onclick="addImage('mad')">Upload New Art</button>
+    </div>
+
+    <div class="progressRow">
+        <div class="progressBar">
+            <div id="madProgressFill" class="progressFill"></div>
+        </div>
+        <span id="madProgressText" class="progressText"></span>
+    </div>
+
+    <div class="thumbStrip" id="madStrip"></div>
+</div>
+
+<!-- SHOUTBOX GALLERY -->
+<div class="gallerySection">
+    <h2>ShoutBox Gallery</h2>
+
+    <div class="uploadRow">
+        <input type="file" id="shoutFile" accept="image/*">
+        <button onclick="addImage('shout')">Upload New Art</button>
+    </div>
+
+    <div class="progressRow">
+        <div class="progressBar">
+            <div id="shoutProgressFill" class="progressFill"></div>
+        </div>
+        <span id="shoutProgressText" class="progressText"></span>
+    </div>
+
+    <div class="thumbStrip" id="shoutStrip"></div>
+</div>
+
+<script>
+    // --- GitHub config (fill this in locally) ---
+    const GITHUB_USER = "naimean";
+    const GITHUB_REPO = "naimean-site";
+    const GITHUB_BRANCH = "main";
+    const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE"; // do NOT commit
+
+    let currentSection = null;
+    let currentIndex = null;
+
+    function galleryKey(section) {
+        if (section === "rad") return "radGallery";
+        if (section === "mad") return "madGallery";
+        return "shoutGallery";
+    }
+
+    function galleryFolder(section) {
+        if (section === "rad") return "gallery/rad";
+        if (section === "mad") return "gallery/mad";
+        return "gallery/shoutbox";
+    }
+
+    function normalizeList(raw) {
+        return (raw || []).map(item => {
+            if (typeof item === "string") {
+                return { url: item };
+            }
+            return item;
+        });
+    }
+
+    function getGalleryList(section) {
+        const key = galleryKey(section);
+        const raw = JSON.parse(localStorage.getItem(key)) || [];
+        return normalizeList(raw);
+    }
+
+    function saveGalleryList(section, list) {
+        const key = galleryKey(section);
+        localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    function setProgress(section, percent, label) {
+        const fillId = section + "ProgressFill";
+        const textId = section + "ProgressText";
+        const fill = document.getElementById(fillId);
+        const text = document.getElementById(textId);
+        if (!fill || !text) return;
+
+        fill.style.width = percent + "%";
+        text.textContent = label ? label : (percent ? percent + "%" : "");
+    }
+
+    function resetProgress(section) {
+        setProgress(section, 0, "");
+    }
+
+    function loadGallery() {
+        const rad = getGalleryList("rad");
+        const mad = getGalleryList("mad");
+        const shout = getGalleryList("shout");
+
+        const radStrip = document.getElementById("radStrip");
+        const madStrip = document.getElementById("madStrip");
+        const shoutStrip = document.getElementById("shoutStrip");
+
+        radStrip.innerHTML = "";
+        madStrip.innerHTML = "";
+        shoutStrip.innerHTML = "";
+
+        rad.forEach((item, index) => {
+            const img = document.createElement("img");
+            img.src = item.url;
+            img.onclick = () => openViewer("rad", index);
+            radStrip.appendChild(img);
+        });
+
+        mad.forEach((item, index) => {
+            const img = document.createElement("
