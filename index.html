@@ -30,13 +30,8 @@
       -webkit-text-fill-color: transparent;
     }
 
-    .box {
-      border: 2px solid #00ff66;
-      padding: 20px 50px;
-      border-radius: 12px;
-      font-size: 1.8rem;
-      margin-bottom: 30px;
-      color: #00ff66;
+    #secretD {
+      cursor: pointer;
     }
 
     button {
@@ -77,9 +72,9 @@
 
 <body>
 
-  <h1>DO YOU NAIMEAN</h1>
-
-  <div class="box">DOYA?</div>
+  <h1>
+    <span id="secretD">D</span>O YOU NAIMEAN
+  </h1>
 
   <button id="meaningBtn">MEANING?</button>
 
@@ -91,17 +86,26 @@
     let count = localStorage.getItem("barrelRolls") || 0;
     document.getElementById("counter").textContent = count;
 
+    // Meaning button → video
     document.getElementById("meaningBtn").addEventListener("click", () => {
-      // Increment counter
       count++;
       localStorage.setItem("barrelRolls", count);
 
-      // Replace page with video
       document.body.innerHTML = `
         <video autoplay playsinline controls>
           <source src="notarickroll.mp4" type="video/mp4">
         </video>
       `;
+    });
+
+    // Zelda sound + backdoor page
+    document.getElementById("secretD").addEventListener("click", () => {
+      const audio = new Audio("zelda.mp3"); // upload this file
+      audio.play();
+
+      audio.onended = () => {
+        window.location.href = "backdoor.html";
+      };
     });
   </script>
 
