@@ -87,7 +87,7 @@
     let count = localStorage.getItem("barrelRolls") || 0;
     document.getElementById("counter").textContent = count;
 
-    // Meaning button → video with NO controls
+    // Meaning button → autoplay video with NO controls
     document.getElementById("meaningBtn").addEventListener("click", () => {
       count++;
       localStorage.setItem("barrelRolls", count);
@@ -95,24 +95,24 @@
       document.body.innerHTML = `
         <video 
           autoplay 
-          playsinline 
+          playsinline
           controlslist="nodownload noplaybackrate nofullscreen"
           disablepictureinpicture
           oncontextmenu="return false;"
-          style="pointer-events:none;"
+          style="pointer-events:none; width:100%; height:auto;"
         >
           <source src="notarickroll.mp4" type="video/mp4">
         </video>
       `;
     });
 
-    // Zelda sound → THEN redirect to correct path
+    // Secret D → play sound → THEN redirect to correct path
     document.getElementById("secretD").addEventListener("click", () => {
       const audio = new Audio("secret.mp3");
       audio.play();
 
       audio.onended = () => {
-        window.location.href = "naimean/backdoor.html";
+        window.location.href = "naimean-/backdoor.html";  // correct repo name
       };
     });
   </script>
