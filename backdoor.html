@@ -23,10 +23,10 @@
     /* SHOUTBOX CONTAINER (Wider + Lower) */
     #shoutbox {
         position: fixed;
-        top: 120px; /* moved down */
+        top: 120px;
         right: 20px;
-        width: 520px; /* wider */
-        height: 480px;
+        width: 520px;
+        height: 520px;
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #39ff14;
         box-shadow: 0 0 15px #39ff14;
@@ -37,7 +37,7 @@
     }
 
     #messages {
-        height: 300px;
+        height: 340px;
         overflow-y: auto;
         border: 1px solid #39ff14;
         padding: 5px;
@@ -48,19 +48,13 @@
     }
 
     .msgRow {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-    }
-
-    .msgText {
-        flex: 1;
-        padding-right: 10px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #39ff14;
     }
 
     .msgButtons button {
-        margin-left: 5px;
+        margin-right: 5px;
         padding: 2px 6px;
         font-size: 0.7rem;
     }
@@ -107,6 +101,12 @@
         padding: 8px 0;
         border-bottom: 1px solid #39ff14;
     }
+
+    img.embeddedImage {
+        max-width: 100%;
+        border: 1px solid #39ff14;
+        margin-top: 6px;
+    }
 </style>
 </head>
 <body>
@@ -120,7 +120,7 @@
     <div id="messages"></div>
 
     <input type="text" id="name" placeholder="Your name">
-    <input type="text" id="message" placeholder="Your message">
+    <input type="text" id="message" placeholder="Your message (text, links, images)">
     <button onclick="sendMessage()">Send</button>
 </div>
 
@@ -140,11 +140,32 @@
         <li>Calendars</li>
         <li>Games</li>
         <li>Files</li>
+        <li>Gallery</li>
         <li>More coming soon…</li>
     </ul>
 </div>
 
 <script>
+    function formatMessageText(text) {
+        // Detect image URLs
+        const imageRegex = /(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp))/gi;
+
+        // Replace image URLs with <img>
+        text = text.replace(imageRegex, url => {
+            return `<br><img class="embeddedImage" src="${url}">`;
+        });
+
+        // Detect regular URLs
+        const urlRegex = /(https?:\/\/[^\s]+)/gi;
+
+        // Replace URLs with clickable links
+        text = text.replace(urlRegex, url => {
+            return `<a href="${url}" target="_blank" style="color:#39ff14;">${url}</a>`;
+        });
+
+        return text;
+    }
+
     function loadMessages() {
         const messages = JSON.parse(localStorage.getItem("shoutboxMessages")) || [];
         const container = document.getElementById("messages");
@@ -154,9 +175,8 @@
             const row = document.createElement("div");
             row.className = "msgRow";
 
-            const text = document.createElement("div");
-            text.className = "msgText";
-            text.textContent = `[${entry.time}] ${entry.name}: ${entry.text}`;
+            const content = document.createElement("div");
+            content.innerHTML = `<strong>[${entry.time}] ${entry.name}:</strong><br>${formatMessageText(entry.text)}`;
 
             const btns = document.createElement("div");
             btns.className = "msgButtons";
@@ -172,7 +192,7 @@
             btns.appendChild(editBtn);
             btns.appendChild(delBtn);
 
-            row.appendChild(text);
+            row.appendChild(content);
             row.appendChild(btns);
 
             container.appendChild(row);
