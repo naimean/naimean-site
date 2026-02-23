@@ -23,19 +23,11 @@
 
     .uploadRow {
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
         gap: 10px;
-    }
-
-    .uploadRow input[type="text"] {
-        background: #000;
-        border: 1px solid #39ff14;
-        color: #39ff14;
-        padding: 8px;
-        width: 260px;
     }
 
     .uploadRow input[type="file"] {
@@ -53,6 +45,35 @@
     .uploadRow button:hover {
         background: #39ff14;
         color: #000;
+    }
+
+    .progressRow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .progressBar {
+        width: 260px;
+        height: 12px;
+        border: 1px solid #39ff14;
+        background: rgba(0,0,0,0.6);
+        overflow: hidden;
+    }
+
+    .progressFill {
+        height: 100%;
+        width: 0%;
+        background: #39ff14;
+        transition: width 0.15s linear;
+    }
+
+    .progressText {
+        min-width: 40px;
+        text-align: left;
+        font-size: 0.9rem;
     }
 
     .thumbStrip {
@@ -146,9 +167,15 @@
     <h2>RAD Gallery</h2>
 
     <div class="uploadRow">
-        <input type="text" id="radUrl" placeholder="Paste image URL">
         <input type="file" id="radFile" accept="image/*">
         <button onclick="addImage('rad')">Upload New Art</button>
+    </div>
+
+    <div class="progressRow">
+        <div class="progressBar">
+            <div id="radProgressFill" class="progressFill"></div>
+        </div>
+        <span id="radProgressText" class="progressText"></span>
     </div>
 
     <div class="thumbStrip" id="radStrip"></div>
@@ -159,9 +186,15 @@
     <h2>MAD Gallery</h2>
 
     <div class="uploadRow">
-        <input type="text" id="madUrl" placeholder="Paste image URL">
         <input type="file" id="madFile" accept="image/*">
         <button onclick="addImage('mad')">Upload New Art</button>
+    </div>
+
+    <div class="progressRow">
+        <div class="progressBar">
+            <div id="madProgressFill" class="progressFill"></div>
+        </div>
+        <span id="madProgressText" class="progressText"></span>
     </div>
 
     <div class="thumbStrip" id="madStrip"></div>
@@ -172,9 +205,15 @@
     <h2>ShoutBox Gallery</h2>
 
     <div class="uploadRow">
-        <input type="text" id="shoutUrl" placeholder="Paste image URL">
         <input type="file" id="shoutFile" accept="image/*">
         <button onclick="addImage('shout')">Upload New Art</button>
+    </div>
+
+    <div class="progressRow">
+        <div class="progressBar">
+            <div id="shoutProgressFill" class="progressFill"></div>
+        </div>
+        <span id="shoutProgressText" class="progressText"></span>
     </div>
 
     <div class="thumbStrip" id="shoutStrip"></div>
@@ -222,6 +261,21 @@
         localStorage.setItem(key, JSON.stringify(list));
     }
 
+    function setProgress(section, percent, label) {
+        const fillId = section + "ProgressFill";
+        const textId = section + "ProgressText";
+        const fill = document.getElementById(fillId);
+        const text = document.getElementById(textId);
+        if (!fill || !text) return;
+
+        fill.style.width = percent + "%";
+        text.textContent = label ? label : (percent ? percent + "%" : "");
+    }
+
+    function resetProgress(section) {
+        setProgress(section, 0, "");
+    }
+
     function loadGallery() {
         const rad = getGalleryList("rad");
         const mad = getGalleryList("mad");
@@ -263,13 +317,18 @@
             throw new Error("Missing token");
         }
 
+        setProgress(section, 10, "10%");
         const arrayBuffer = await file.arrayBuffer();
+
+        setProgress(section, 25, "25%");
         const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
+        setProgress(section, 50, "50%");
         const folder = galleryFolder(section);
         const filename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
         const path = `${folder}/${filename}`;
 
+        setProgress(section, 75, "75%");
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`, {
             method: "PUT",
             headers: {
@@ -284,11 +343,15 @@
         });
 
         if (!res.ok) {
+            resetProgress(section);
             alert("GitHub upload failed.");
             throw new Error("GitHub upload failed");
         }
 
         const data = await res.json();
+        setProgress(section, 100, "100%");
+        setTimeout(() => resetProgress(section), 800);
+
         return {
             url: data.content.download_url,
             path: data.content.path,
@@ -297,29 +360,20 @@
     }
 
     async function addImage(section) {
-        const urlInput = document.getElementById(
-            section === "shout" ? "shoutUrl" : section + "Url"
-        );
         const fileInput = document.getElementById(
             section === "shout" ? "shoutFile" : section + "File"
         );
 
-        const pastedUrl = urlInput.value.trim();
         const file = fileInput.files[0];
-
-        if (!pastedUrl && !file) return;
+        if (!file) return;
 
         let meta = null;
 
-        if (file) {
-            try {
-                meta = await uploadFileToGitHub(section, file);
-            } catch (e) {
-                console.error(e);
-                return;
-            }
-        } else if (pastedUrl) {
-            meta = { url: pastedUrl };
+        try {
+            meta = await uploadFileToGitHub(section, file);
+        } catch (e) {
+            console.error(e);
+            return;
         }
 
         if (!meta) return;
@@ -328,7 +382,6 @@
         list.push(meta);
         saveGalleryList(section, list);
 
-        urlInput.value = "";
         fileInput.value = "";
         loadGallery();
     }
@@ -346,7 +399,6 @@
     }
 
     function closeViewer(event) {
-        // prevent closing when clicking buttons
         if (event && event.target && event.target.id.startsWith("viewerBtn")) return;
         document.getElementById("viewer").style.display = "none";
         currentSection = null;
@@ -361,7 +413,6 @@
         const item = list[currentIndex];
         if (!item) return;
 
-        // Delete from GitHub if we have path + sha
         if (item.path && item.sha && GITHUB_TOKEN) {
             try {
                 const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${item.path}`, {
@@ -400,11 +451,9 @@
         const item = fromList[currentIndex];
         if (!item) return;
 
-        // Remove from current
         fromList.splice(currentIndex, 1);
         saveGalleryList(currentSection, fromList);
 
-        // Add to target (local classification only; file stays where it is in GitHub)
         const toList = getGalleryList(targetSection);
         toList.push(item);
         saveGalleryList(targetSection, toList);
