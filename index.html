@@ -1,418 +1,138 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="color-scheme" content="dark" />
-  <title>NAIMEAN</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<title>NAIMEAN</title>
 
-  <style>
-    :root{
-      --bg0:#050306;
-      --bg1:#12061c;
-      --bg2:#0a1210;
+<style>
+:root{
+  --bg0:#050306;
+  --bg1:#12061c;
+  --bg2:#0a1210;
+  --green:#3dff93;
+  --purple:#1a0826;
+}
 
-      --purple0:#12061c;
-      --purple1:#1a0826;
-      --purple2:#2a0b3b;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto;
+  background:
+    radial-gradient(900px 500px at 30% 30%, rgba(61,255,147,.08), transparent 60%),
+    radial-gradient(900px 600px at 70% 40%, rgba(160,90,255,.14), transparent 60%),
+    linear-gradient(135deg,var(--bg0),var(--bg1) 50%,var(--bg2));
+  color:#e9e4f2;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:40px 20px;
+}
 
-      --green0:#3dff93;
-      --green1:#00c26a;
-      --green2:#0b3b25;
+.wrap{
+  width:100%;
+  max-width:1100px;
+  text-align:center;
+}
 
-      --brown0:#2a1b12;
-      --brown1:#3a2a1d;
+.topline{
+  letter-spacing:.4em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:rgba(140,255,190,.8);
+  margin-bottom:20px;
+}
 
-      --text0:#e9e4f2;
-      --text1:#c8c1d6;
-      --muted:#9b92b0;
+.topline a{
+  color:rgba(140,255,190,.8);
+  text-decoration:none;
+}
 
-      --stroke: rgba(180,150,230,0.22);
-      --glass: rgba(12, 10, 16, 0.55);
-      --glass2: rgba(12, 10, 16, 0.75);
-      --shadow: 0 20px 60px rgba(0,0,0,0.55);
+.title h1{
+  margin:0 0 40px 0;
+  font-size:clamp(56px,10vw,140px);
+  letter-spacing:.08em;
+  font-weight:900;
+  text-transform:uppercase;
+  color:var(--green);
+}
 
-      --radius-xl: 28px;
-      --radius-lg: 18px;
-    }
+.card{
+  background:rgba(20,15,30,.6);
+  border-radius:28px;
+  padding:30px;
+  border:1px solid rgba(160,90,255,.25);
+}
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color:var(--text0);
-      background:
-        radial-gradient(1200px 700px at 70% 20%, rgba(61,255,147,0.10), transparent 60%),
-        radial-gradient(900px 600px at 15% 35%, rgba(160,90,255,0.16), transparent 60%),
-        radial-gradient(1000px 700px at 50% 110%, rgba(58,42,29,0.22), transparent 55%),
-        linear-gradient(135deg, var(--bg0), var(--bg1) 45%, var(--bg2));
-      overflow-x:hidden;
-    }
+.doya{
+  font-weight:900;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  font-size:clamp(18px,3vw,30px);
+  margin-bottom:20px;
+  color:rgba(140,255,190,.9);
+}
 
-    /* soft film grain */
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
-      mix-blend-mode:overlay;
-      opacity:.22;
-    }
+.actions{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
 
-    .wrap{
-      min-height:100%;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding:38px 18px 46px;
-      gap:22px;
-    }
+.btn{
+  padding:14px 24px;
+  border-radius:999px;
+  font-weight:800;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  cursor:pointer;
+  border:1px solid rgba(140,255,190,.3);
+  background:rgba(0,0,0,.6);
+  color:var(--green);
+}
 
-    /* Top line */
-    .topline{
-      width:min(1100px, 96vw);
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      letter-spacing: .45em;
-      text-transform:uppercase;
-      font-weight:700;
-      font-size: clamp(14px, 1.7vw, 18px);
-      color: rgba(140,255,190,0.78);
-      user-select:none;
-    }
-
-    .topline a{
-      color: rgba(140,255,190,0.78);
-      text-decoration:none;
-      padding:10px 12px;
-      border-radius: 999px;
-      transition: transform .12s ease, background .12s ease, color .12s ease;
-    }
-    .topline a:hover{
-      background: rgba(61,255,147,0.08);
-      color: rgba(180,255,210,0.95);
-      transform: translateY(-1px);
-    }
-
-    /* Main title */
-    .title{
-      width:min(1100px, 96vw);
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      margin-top: 4px;
-    }
-
-    .title h1{
-      margin:0;
-      font-size: clamp(56px, 10vw, 148px);
-      letter-spacing: .08em;
-      font-weight: 900;
-      line-height: .95;
-      text-transform:uppercase;
-      color: rgba(61,255,147,0.88);
-      text-shadow:
-        0 0 0.7px rgba(255,255,255,0.25),
-        0 18px 75px rgba(0,0,0,0.70),
-        0 0 40px rgba(61,255,147,0.14),
-        0 0 70px rgba(160,90,255,0.14);
-      opacity: .95;
-    }
-
-    /* Video card */
-    .card{
-      width:min(1100px, 96vw);
-      border-radius: var(--radius-xl);
-      background: linear-gradient(180deg, rgba(26,8,38,0.55), rgba(10,18,16,0.42));
-      border: 1px solid var(--stroke);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-
-    .card-inner{
-      display:flex;
-      flex-direction:column;
-      gap: 14px;
-      padding: 18px;
-    }
-
-    .thumb{
-      width:100%;
-      aspect-ratio: 21 / 9;
-      border-radius: 22px;
-      border: 1px solid rgba(61,255,147,0.18);
-      background:
-        radial-gradient(900px 400px at 30% 35%, rgba(61,255,147,0.10), transparent 60%),
-        radial-gradient(900px 500px at 70% 40%, rgba(160,90,255,0.18), transparent 60%),
-        linear-gradient(135deg, rgba(42,27,18,0.38), rgba(18,6,28,0.78));
-      position:relative;
-      overflow:hidden;
-    }
-
-    /* subtle “poster” shimmer without being video */
-    .thumb::before{
-      content:"";
-      position:absolute;
-      inset:-40%;
-      background: linear-gradient(120deg, transparent 35%, rgba(61,255,147,0.08) 50%, transparent 65%);
-      transform: rotate(10deg);
-      animation: sweep 6.5s ease-in-out infinite;
-      opacity:.8;
-      pointer-events:none;
-    }
-    @keyframes sweep{
-      0%{ transform: translateX(-35%) rotate(10deg); opacity:.15; }
-      50%{ opacity:.45; }
-      100%{ transform: translateX(35%) rotate(10deg); opacity:.15; }
-    }
-
-    .thumb-center{
-      position:absolute;
-      inset:0;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      gap: 12px;
-      padding: 18px;
-      text-align:center;
-    }
-
-    .doya{
-      font-weight:900;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      font-size: clamp(18px, 2.3vw, 30px);
-      color: rgba(140,255,190,0.9);
-      text-shadow: 0 10px 30px rgba(0,0,0,0.65);
-    }
-
-    .subnote{
-      font-size: 14px;
-      color: rgba(220,210,245,0.72);
-      max-width: 780px;
-      line-height: 1.4;
-    }
-
-    .actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap: 12px;
-      justify-content:center;
-      padding: 4px 0 2px;
-    }
-
-    .btn{
-      cursor:pointer;
-      border: 1px solid rgba(140,255,190,0.22);
-      background: rgba(12,10,16,0.65);
-      color: rgba(180,255,210,0.95);
-      padding: 12px 18px;
-      border-radius: 999px;
-      font-weight: 800;
-      letter-spacing: .16em;
-      text-transform:uppercase;
-      transition: transform .12s ease, background .12s ease, border-color .12s ease;
-      user-select:none;
-    }
-    .btn:hover{
-      transform: translateY(-1px);
-      background: rgba(61,255,147,0.10);
-      border-color: rgba(61,255,147,0.30);
-    }
-    .btn:active{
-      transform: translateY(0px) scale(0.99);
-    }
-
-    .btn-secondary{
-      border-color: rgba(180,150,230,0.22);
-      color: rgba(230,220,255,0.9);
-      background: rgba(12,10,16,0.55);
-    }
-    .btn-secondary:hover{
-      background: rgba(160,90,255,0.10);
-      border-color: rgba(160,90,255,0.30);
-    }
-
-    .tiny{
-      font-size: 12px;
-      color: rgba(155,146,176,0.78);
-      text-align:center;
-      padding-bottom: 6px;
-    }
-
-    @media (max-width: 700px){
-      .thumb{ aspect-ratio: 16 / 10; }
-      .topline{ letter-spacing:.35em; }
-    }
-  </style>
+.btn.secondary{
+  border-color:rgba(160,90,255,.3);
+  color:#d7cfff;
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
+<div class="wrap">
 
-    <!-- Top line (click to backdoor) -->
-    <div class="topline">
-      <a href="/backdoor" title="Backdoor">F U John</a>
-    </div>
-
-    <!-- Big title -->
-    <div class="title">
-      <h1>NAIMEAN</h1>
-    </div>
-
-    <!-- Video thumbnail card (static until click) -->
-    <section class="card" aria-label="Rickroll">
-      <div class="card-inner">
-        <div class="thumb" id="thumb" role="button" tabindex="0" aria-label="Open video">
-          <div class="thumb-center">
-            <div class="doya">Doya?</div>
-            <div class="actions">
-              <button class="btn" id="openVideo" type="button">Open</button>
-              <button class="btn btn-secondary" id="meaningBtn" type="button">Meaning?</button>
-            </div>
-            <div class="subnote">
-              Tap <b>Open</b> to launch the clip. Your browser may require a user click to allow sound/fullscreen.
-            </div>
-          </div>
-        </div>
-
-        <div class="tiny">
-          If sound doesn’t start automatically, click inside the video window once — autoplay with sound is often blocked by browsers.
-        </div>
-      </div>
-    </section>
-
+  <div class="topline">
+    <a href="/backdoor">F U JOHN</a>
   </div>
 
-  <script>
-    // ===== CONFIG =====
-    // Put your mp4 at the site root alongside index.html: /rickroll.mp4
-    const VIDEO_URL = "/rickroll.mp4";
-
-    // "Meaning?" button target (change if you want)
-    const MEANING_URL = "https://www.urbandictionary.com/define.php?term=doya";
-
-    // Open sizing
-    function openRickrollWindow() {
-      // Try to open a new popup window (browser may block unless user gesture – we only call from click)
-      const features = [
-        "popup=yes",
-        "noopener=yes",
-        "noreferrer=yes",
-        "menubar=no",
-        "toolbar=no",
-        "location=no",
-        "status=no",
-        "resizable=yes",
-        "scrollbars=no",
-        `width=${Math.min(window.screen.width, 1200)}`,
-        `height=${Math.min(window.screen.height, 800)}`,
-        "left=0",
-        "top=0"
-      ].join(",");
-
-      const w = window.open("", "naimean_rickroll", features);
-
-      // If blocked, fall back to same-tab navigation
-      if (!w) {
-        window.location.href = VIDEO_URL;
-        return;
-      }
-
-      // Write a minimal page that auto-plays the MP4.
-      // Note: We do NOT attempt to forcibly unmute without user interaction (browsers block it).
-      w.document.open();
-      w.document.write(`<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="color-scheme" content="dark" />
-  <title>NAIMEAN</title>
-  <style>
-    html,body{height:100%;margin:0;background:#000;overflow:hidden;}
-    .v{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
-    video{width:100%;height:100%;object-fit:contain;background:#000;}
-    .hint{
-      position:fixed;left:50%;top:14px;transform:translateX(-50%);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color: rgba(200,255,220,0.85);
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      font-weight:800;
-      font-size:12px;
-      padding:10px 14px;
-      border-radius:999px;
-      background: rgba(0,0,0,0.45);
-      border: 1px solid rgba(100,255,170,0.22);
-      user-select:none;
-    }
-  </style>
-</head>
-<body>
-  <div class="v">
-    <video id="vid" src="${VIDEO_URL}" playsinline autoplay controls></video>
+  <div class="title">
+    <h1>NAIMEAN</h1>
   </div>
-  <div class="hint">Click once if audio is muted • Press F for fullscreen (or tap fullscreen)</div>
 
-  <script>
-    const vid = document.getElementById("vid");
+  <div class="card">
+    <div class="doya">DOYA?</div>
 
-    // Try to request fullscreen immediately (may be denied unless user gesture — but often works after the click that opened this window)
-    function tryFullscreen() {
-      const el = document.documentElement;
-      if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
-    }
-    tryFullscreen();
+    <div class="actions">
+      <button class="btn" onclick="openRick()">Open</button>
+      <button class="btn secondary" onclick="openMeaning()">Meaning?</button>
+    </div>
+  </div>
 
-    // Also allow "F" to fullscreen
-    window.addEventListener("keydown", (e) => {
-      if (e.key.toLowerCase() === "f") tryFullscreen();
-    });
+</div>
 
-    // Make clicking anywhere try to unmute + play again
-    window.addEventListener("pointerdown", async () => {
-      try {
-        vid.muted = false;
-        vid.volume = 1;
-        await vid.play();
-        tryFullscreen();
-      } catch {}
-    }, { once:false });
-  <\/script>
-</body>
-</html>`);
-      w.document.close();
+<script>
+function openRick(){
+  // iOS-safe method
+  window.open("/rickroll.mp4", "_blank");
+}
 
-      // Try to maximize the new window (some browsers ignore)
-      try { w.moveTo(0,0); w.resizeTo(window.screen.width, window.screen.height); } catch {}
-      try { w.focus(); } catch {}
-    }
+function openMeaning(){
+  window.open("https://www.urbandictionary.com/define.php?term=doya","_blank");
+}
+</script>
 
-    // Wire up UI
-    const openBtn = document.getElementById("openVideo");
-    const meaningBtn = document.getElementById("meaningBtn");
-    const thumb = document.getElementById("thumb");
-
-    openBtn.addEventListener("click", openRickrollWindow);
-    thumb.addEventListener("click", (e) => {
-      // avoid double-trigger when clicking the button itself
-      if (e.target && e.target.id === "openVideo") return;
-      // clicking the thumbnail also opens
-      openRickrollWindow();
-    });
-    thumb.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") openRickrollWindow();
-    });
-
-    meaningBtn.addEventListener("click", () => {
-      window.open(MEANING_URL, "_blank", "noopener,noreferrer");
-    });
-  </script>
 </body>
 </html>
