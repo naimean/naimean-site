@@ -24,14 +24,22 @@
     .uploadRow {
         text-align: center;
         margin-bottom: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
     }
 
-    .uploadRow input {
+    .uploadRow input[type="text"] {
         background: #000;
         border: 1px solid #39ff14;
         color: #39ff14;
         padding: 8px;
-        width: 250px;
+        width: 260px;
+    }
+
+    .uploadRow input[type="file"] {
+        color: #39ff14;
     }
 
     .uploadRow button {
@@ -97,11 +105,18 @@
         cursor: pointer;
         text-shadow: 0 0 10px #39ff14;
     }
+
+    a {
+        color: #39ff14;
+        text-decoration: none;
+    }
 </style>
 </head>
 <body>
 
 <h1>Gallery</h1>
+
+<a href="backdoor.html">&larr; Back to Backdoor</a>
 
 <!-- FULLSCREEN VIEWER -->
 <div id="viewer" onclick="closeViewer()">
@@ -109,68 +124,159 @@
     <img id="viewerImg">
 </div>
 
-<!-- TOP GALLERY -->
+<!-- RAD GALLERY -->
 <div class="gallerySection">
-    <h2>Top Gallery</h2>
+    <h2>RAD Gallery</h2>
 
     <div class="uploadRow">
-        <input type="text" id="topUrl" placeholder="Paste image URL">
-        <button onclick="addImage('top')">Upload New Art</button>
+        <input type="text" id="radUrl" placeholder="Paste image URL">
+        <input type="file" id="radFile" accept="image/*">
+        <button onclick="addImage('rad')">Upload New Art</button>
     </div>
 
-    <div class="thumbStrip" id="topStrip"></div>
+    <div class="thumbStrip" id="radStrip"></div>
 </div>
 
-<!-- BOTTOM GALLERY -->
+<!-- MAD GALLERY -->
 <div class="gallerySection">
-    <h2>Bottom Gallery</h2>
+    <h2>MAD Gallery</h2>
 
     <div class="uploadRow">
-        <input type="text" id="bottomUrl" placeholder="Paste image URL">
-        <button onclick="addImage('bottom')">Upload New Art</button>
+        <input type="text" id="madUrl" placeholder="Paste image URL">
+        <input type="file" id="madFile" accept="image/*">
+        <button onclick="addImage('mad')">Upload New Art</button>
     </div>
 
-    <div class="thumbStrip" id="bottomStrip"></div>
+    <div class="thumbStrip" id="madStrip"></div>
+</div>
+
+<!-- MISC GALLERY -->
+<div class="gallerySection">
+    <h2>Misc. Gallery</h2>
+
+    <div class="uploadRow">
+        <input type="text" id="miscUrl" placeholder="Paste image URL">
+        <input type="file" id="miscFile" accept="image/*">
+        <button onclick="addImage('misc')">Upload New Art</button>
+    </div>
+
+    <div class="thumbStrip" id="miscStrip"></div>
 </div>
 
 <script>
+    // --- GitHub config (fill in your token locally) ---
+    const GITHUB_USER = "naimean";
+    const GITHUB_REPO = "naimean-site";
+    const GITHUB_BRANCH = "main";
+    const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE"; // <-- set this locally, do NOT commit
+
+    function galleryKey(section) {
+        if (section === "rad") return "radGallery";
+        if (section === "mad") return "madGallery";
+        return "miscGallery";
+    }
+
+    function galleryFolder(section) {
+        if (section === "rad") return "gallery/rad";
+        if (section === "mad") return "gallery/mad";
+        return "gallery/misc";
+    }
+
     function loadGallery() {
-        const top = JSON.parse(localStorage.getItem("topGallery")) || [];
-        const bottom = JSON.parse(localStorage.getItem("bottomGallery")) || [];
+        const rad = JSON.parse(localStorage.getItem("radGallery")) || [];
+        const mad = JSON.parse(localStorage.getItem("madGallery")) || [];
+        const misc = JSON.parse(localStorage.getItem("miscGallery")) || [];
 
-        const topStrip = document.getElementById("topStrip");
-        const bottomStrip = document.getElementById("bottomStrip");
+        const radStrip = document.getElementById("radStrip");
+        const madStrip = document.getElementById("madStrip");
+        const miscStrip = document.getElementById("miscStrip");
 
-        topStrip.innerHTML = "";
-        bottomStrip.innerHTML = "";
+        radStrip.innerHTML = "";
+        madStrip.innerHTML = "";
+        miscStrip.innerHTML = "";
 
-        top.forEach(url => {
+        rad.forEach(url => {
             const img = document.createElement("img");
             img.src = url;
             img.onclick = () => openViewer(url);
-            topStrip.appendChild(img);
+            radStrip.appendChild(img);
         });
 
-        bottom.forEach(url => {
+        mad.forEach(url => {
             const img = document.createElement("img");
             img.src = url;
             img.onclick = () => openViewer(url);
-            bottomStrip.appendChild(img);
+            madStrip.appendChild(img);
+        });
+
+        misc.forEach(url => {
+            const img = document.createElement("img");
+            img.src = url;
+            img.onclick = () => openViewer(url);
+            miscStrip.appendChild(img);
         });
     }
 
-    function addImage(section) {
-        const input = document.getElementById(section + "Url");
-        const url = input.value.trim();
-        if (!url) return;
+    async function addImage(section) {
+        const urlInput = document.getElementById(section + "Url");
+        const fileInput = document.getElementById(section + "File");
 
-        const key = section === "top" ? "topGallery" : "bottomGallery";
+        const pastedUrl = urlInput.value.trim();
+        const file = fileInput.files[0];
+
+        if (!pastedUrl && !file) return;
+
+        let finalUrl = null;
+
+        // If file selected, upload to GitHub
+        if (file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+                const folder = galleryFolder(section);
+                const filename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+                const path = `${folder}/${filename}`;
+
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: `Add image to ${folder}`,
+                        content: base64,
+                        branch: GITHUB_BRANCH
+                    })
+                });
+
+                if (!res.ok) {
+                    alert("GitHub upload failed.");
+                    return;
+                }
+
+                const data = await res.json();
+                finalUrl = data.content.download_url;
+            } catch (e) {
+                console.error(e);
+                alert("Error uploading image.");
+                return;
+            }
+        } else if (pastedUrl) {
+            // For pasted URLs, just use the URL directly
+            finalUrl = pastedUrl;
+        }
+
+        if (!finalUrl) return;
+
+        const key = galleryKey(section);
         const list = JSON.parse(localStorage.getItem(key)) || [];
-
-        list.push(url);
+        list.push(finalUrl);
         localStorage.setItem(key, JSON.stringify(list));
 
-        input.value = "";
+        urlInput.value = "";
+        fileInput.value = "";
         loadGallery();
     }
 
