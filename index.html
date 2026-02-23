@@ -1,218 +1,72 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<meta name="color-scheme" content="dark" />
-<title>NAIMEAN</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Do You Naimean</title>
 
-<style>
-:root{
-  --bg0:#050306;
-  --bg1:#12061c;
-  --bg2:#0a1210;
-  --green:#3dff93;
-}
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(180deg, #000000, #1a1a1a);
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family: system-ui,-apple-system,Segoe UI,Roboto;
-  background:
-    radial-gradient(900px 500px at 30% 30%, rgba(61,255,147,.08), transparent 60%),
-    radial-gradient(900px 600px at 70% 40%, rgba(160,90,255,.14), transparent 60%),
-    linear-gradient(135deg,var(--bg0),var(--bg1) 50%,var(--bg2));
-  color:#e9e4f2;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  padding:40px 20px;
-}
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
 
-.wrap{
-  width:100%;
-  max-width:1100px;
-  text-align:center;
-}
+    .box {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px 40px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
 
-.topline{
-  letter-spacing:.4em;
-  text-transform:uppercase;
-  font-weight:700;
-  color:rgba(140,255,190,.8);
-  margin-bottom:20px;
-}
+    button {
+      padding: 12px 25px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 12px;
+      background: white;
+      color: black;
+      cursor: pointer;
+    }
 
-.topline a{
-  color:rgba(140,255,190,.8);
-  text-decoration:none;
-}
-
-.title h1{
-  margin:0 0 40px 0;
-  font-size:clamp(56px,10vw,140px);
-  letter-spacing:.08em;
-  font-weight:900;
-  text-transform:uppercase;
-  color:var(--green);
-}
-
-.card{
-  background:rgba(20,15,30,.6);
-  border-radius:28px;
-  padding:30px;
-  border:1px solid rgba(160,90,255,.25);
-  position:relative;
-  overflow:hidden;
-}
-
-.doya{
-  font-weight:900;
-  letter-spacing:.2em;
-  text-transform:uppercase;
-  font-size:clamp(18px,3vw,30px);
-  margin-bottom:20px;
-  color:rgba(140,255,190,.9);
-}
-
-.actions{
-  display:flex;
-  justify-content:center;
-  gap:14px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  padding:14px 24px;
-  border-radius:999px;
-  font-weight:800;
-  letter-spacing:.15em;
-  text-transform:uppercase;
-  cursor:pointer;
-  border:1px solid rgba(140,255,190,.3);
-  background:rgba(0,0,0,.6);
-  color:var(--green);
-}
-
-.btn.secondary{
-  border-color:rgba(160,90,255,.3);
-  color:#d7cfff;
-}
-
-/* Rickroll overlay */
-.video-overlay{
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(1000px 600px at 50% 30%, rgba(61,255,147,.06), transparent 70%),
-    linear-gradient(135deg,var(--bg0),var(--bg1) 50%,var(--bg2));
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .4s ease;
-  z-index:999;
-}
-
-.video-overlay.active{
-  opacity:1;
-  pointer-events:auto;
-}
-
-.video-wrapper{
-  width:90%;
-  max-width:900px;
-  aspect-ratio:16/9;
-  box-shadow:0 30px 80px rgba(0,0,0,.8);
-  border-radius:18px;
-  overflow:hidden;
-}
-
-iframe{
-  width:100%;
-  height:100%;
-  border:0;
-}
-
-.close-btn{
-  position:absolute;
-  top:30px;
-  right:30px;
-  background:rgba(0,0,0,.6);
-  border:1px solid rgba(140,255,190,.3);
-  color:var(--green);
-  padding:10px 16px;
-  border-radius:999px;
-  font-weight:700;
-  letter-spacing:.15em;
-  cursor:pointer;
-}
-</style>
+    video {
+      width: 100%;
+      height: auto;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="wrap">
-  <div class="topline">
-    <a href="/backdoor">F U JOHN</a>
-  </div>
+  <h1>DO YOU NAIMEAN</h1>
 
-  <div class="title">
-    <h1>NAIMEAN</h1>
-  </div>
+  <div class="box">DOYA?</div>
 
-  <div class="card">
-    <div class="doya">DOYA?</div>
+  <button id="meaningBtn">MEANING?</button>
 
-    <div class="actions">
-      <button class="btn" onclick="launchRick()">Open</button>
-      <button class="btn secondary" onclick="openMeaning()">Meaning?</button>
-    </div>
-  </div>
-</div>
-
-<!-- Overlay -->
-<div class="video-overlay" id="overlay">
-  <button class="close-btn" onclick="closeRick()">Close</button>
-  <div class="video-wrapper">
-    <iframe id="rickFrame"
-      allow="autoplay; encrypted-media"
-      allowfullscreen>
-    </iframe>
-  </div>
-</div>
-
-<script>
-function launchRick(){
-  const overlay = document.getElementById("overlay");
-  const frame = document.getElementById("rickFrame");
-
-  frame.src =
-    "https://www.youtube.com/embed/dQw4w9WgXcQ" +
-    "?autoplay=1" +
-    "&controls=0" +
-    "&modestbranding=1" +
-    "&rel=0" +
-    "&playsinline=1" +
-    "&loop=1" +
-    "&playlist=dQw4w9WgXcQ";
-
-  overlay.classList.add("active");
-}
-
-function closeRick(){
-  const overlay = document.getElementById("overlay");
-  const frame = document.getElementById("rickFrame");
-  frame.src = "";
-  overlay.classList.remove("active");
-}
-
-function openMeaning(){
-  window.open("https://www.urbandictionary.com/define.php?term=doya","_blank");
-}
-</script>
+  <script>
+    document.getElementById("meaningBtn").addEventListener("click", () => {
+      document.body.innerHTML = `
+        <video autoplay playsinline controls>
+          <source src="notarickroll.mp4" type="video/mp4">
+        </video>
+      `;
+    });
+  </script>
 
 </body>
 </html>
