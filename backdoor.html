@@ -165,7 +165,6 @@
         <li>Access Keys</li>
         <li>Server Pings</li>
 
-        <!-- NEW LINKS -->
         <li><a href="calendars.html">Calendars</a></li>
         <li><a href="games.html">Games</a></li>
         <li><a href="files.html">Files</a></li>
@@ -177,9 +176,11 @@
 
 <script>
     function formatMessageText(text) {
+        // First, replace image URLs with just the image (no visible URL)
         const imageRegex = /(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp))/gi;
-        text = text.replace(imageRegex, url => `<br><img class="embeddedImage" src="${url}">`);
+        text = text.replace(imageRegex, url => `<img class="embeddedImage" src="${url}">`);
 
+        // Then, turn remaining URLs into links
         const urlRegex = /(https?:\/\/[^\s]+)/gi;
         text = text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color:#39ff14;">${url}</a>`);
 
