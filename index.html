@@ -14,7 +14,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: #000000;
+      background: linear-gradient(180deg, #000000, #0a0a0a, #111111);
       font-family: Arial, sans-serif;
       color: #00ff66;
       text-align: center;
@@ -25,7 +25,9 @@
       font-weight: 900;
       letter-spacing: 2px;
       margin-bottom: 40px;
-      color: #00ff66;
+      background: linear-gradient(180deg, #00ff66, #00cc55);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     #secretD {
@@ -71,62 +73,41 @@
 
 <body>
 
+  <!-- HEADER WITH CLICKABLE D -->
   <h1>
     <span id="secretD">D</span>O YOU NAIMEAN
   </h1>
 
+  <!-- MEANING BUTTON -->
   <button id="meaningBtn">MEANING?</button>
 
+  <!-- COUNTER -->
   <div class="counter-label"># of barrel rolls:</div>
   <div class="counter-value" id="counter">0</div>
 
+  <!-- SCRIPT -->
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Load saved count
-      let count = localStorage.getItem("barrelRolls") || 0;
-      document.getElementById("counter").textContent = count;
+    // Load saved count
+    let count = localStorage.getItem("barrelRolls") || 0;
+    document.getElementById("counter").textContent = count;
 
-      // Meaning button → video
-      const meaningBtn = document.getElementById("meaningBtn");
-      if (meaningBtn) {
-        meaningBtn.addEventListener("click", () => {
-          count++;
-          localStorage.setItem("barrelRolls", count);
+    // Meaning button → video
+    document.getElementById("meaningBtn").addEventListener("click", () => {
+      count++;
+      localStorage.setItem("barrelRolls", count);
 
-          document.body.innerHTML = `
-            <video autoplay playsinline controls>
-              <source src="notarickroll.mp4" type="video/mp4">
-            </video>
-          `;
-        });
-      }
+      document.body.innerHTML = `
+        <video autoplay playsinline controls>
+          <source src="notarickroll.mp4" type="video/mp4">
+        </video>
+      `;
+    });
 
-      // D → play secret.mp3 → go to backdoor.html
-      const secretD = document.getElementById("secretD");
-      if (secretD) {
-        secretD.addEventListener("click", () => {
-          const audio = new Audio("secret.mp3");
-
-          let navigated = false;
-          const goBackdoor = () => {
-            if (!navigated) {
-              navigated = true;
-              window.location.href = "backdoor.html";
-            }
-          };
-
-          audio.play()
-            .then(() => {
-              audio.onended = goBackdoor;
-              // safety fallback in case onended doesn't fire
-              setTimeout(goBackdoor, 5000);
-            })
-            .catch(() => {
-              // if audio fails (iOS/autoplay issues), still navigate
-              goBackdoor();
-            });
-        });
-      }
+    // Zelda sound + instant navigation
+    document.getElementById("secretD").addEventListener("click", () => {
+      const audio = new Audio("secret.mp3");
+      audio.play(); // plays immediately
+      window.location.href = "backdoor.html"; // navigates immediately
     });
   </script>
 
