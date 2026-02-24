@@ -1,383 +1,114 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Backdoor</title>
-<style>
-    body {
-        background-color: #000;
-        color: #39ff14;
-        font-family: "Courier New", monospace;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-    }
-
-    h1 {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 2.5rem;
-        text-shadow: 0 0 10px #39ff14;
-    }
-
-    /* SHOUTBOX CONTAINER */
-    #shoutbox {
-        position: fixed;
-        top: 120px;
-        right: 20px;
-        width: 520px;
-        height: 560px;
-        background: rgba(0, 0, 0, 0.85);
-        border: 2px solid #39ff14;
-        box-shadow: 0 0 15px #39ff14;
-        padding: 10px;
-        resize: both;
-        overflow: hidden;
-        z-index: 9999;
-    }
-
-    #messages {
-        height: 340px;
-        overflow-y: auto;
-        border: 1px solid #39ff14;
-        padding: 5px;
-        margin-bottom: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        font-size: 0.9rem;
-        line-height: 1.3rem;
-    }
-
-    .msgRow {
-        margin-bottom: 10px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid #39ff14;
-    }
-
-    .msgHeader {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .msgHeader span {
-        font-weight: bold;
-    }
-
-    .msgButtons {
-        display: flex;
-        gap: 6px;
-    }
-
-    .msgButtons button {
-        background: none;
-        border: none;
-        color: #39ff14;
-        font-size: 0.9rem;
-        cursor: pointer;
-        padding: 0;
-    }
-
-    .msgButtons button:hover {
-        color: red;
-    }
-
-    input[type="text"], button {
-        width: 100%;
-        padding: 8px;
-        margin-top: 5px;
-        background: #000;
-        border: 1px solid #39ff14;
-        color: #39ff14;
-    }
-
-    input[type="file"] {
-        margin-top: 5px;
-        width: 100%;
-        color: #39ff14;
-    }
-
-    button:hover {
-        cursor: pointer;
-        background: #39ff14;
-        color: #000;
-    }
-
-    /* TABLE OF CONTENTS */
-    #toc {
-        margin: 40px auto;
-        width: 90%;
-        max-width: 700px;
-        border: 2px solid #39ff14;
-        padding: 20px;
-        background: rgba(0, 0, 0, 0.4);
-        box-shadow: 0 0 10px #39ff14;
-        height: 400px;
-        overflow-y: auto;
-    }
-
-    #toc h2 {
-        text-align: center;
-        text-shadow: 0 0 10px #39ff14;
-    }
-
-    #toc ul {
-        list-style: none;
-        padding-left: 0;
-    }
-
-    #toc li {
-        padding: 8px 0;
-        border-bottom: 1px solid #39ff14;
-    }
-
-    #toc a {
-        color: #39ff14;
-        text-decoration: none;
-    }
-
-    img.embeddedImage {
-        max-width: 100%;
-        border: 1px solid #39ff14;
-        margin-top: 6px;
-    }
-</style>
-</head>
-<body>
-
-<h1>WELCOME TO THE BACKDOOR</h1>
-
-<!-- SHOUTBOX -->
-<div id="shoutbox">
-    <h3 style="text-align:center; margin-top:0;">Shoutbox</h3>
-
-    <div id="messages"></div>
-
-    <input type="text" id="name" placeholder="Your name">
-    <input type="text" id="message" placeholder="Your message (text, links, images)">
-    <input type="file" id="shoutFile" accept="image/*">
-    <button onclick="sendMessage()">Send</button>
-</div>
-
-<!-- TABLE OF CONTENTS -->
-<div id="toc">
-    <h2>Backdoor Contents</h2>
-    <ul id="tocList">
-        <li>Secret Entry Logs</li>
-        <li>Visitor Activity</li>
-        <li>Hidden Files</li>
-        <li>Encrypted Notes</li>
-        <li>System Flags</li>
-        <li>Debug Console</li>
-        <li>Experimental Features</li>
-        <li>Access Keys</li>
-        <li>Server Pings</li>
-
-        <li><a href="calendars.html">Calendars</a></li>
-        <li><a href="games.html">Games</a></li>
-        <li><a href="files.html">Files</a></li>
-        <li><a href="gallery.html">Gallery</a></li>
-
-        <li>More coming soon…</li>
-    </ul>
-</div>
-
 <script>
-    // --- GitHub config (fill this in locally) ---
-    const GITHUB_USER = "naimean";
-    const GITHUB_REPO = "naimean-site";
-    const GITHUB_BRANCH = "main";
-    const GITHUB_TOKEN = "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"; // do NOT commit
+// ------------------------------
+// Load messages from localStorage
+// ------------------------------
+function loadMessages() {
+    const saved = localStorage.getItem("shoutboxMessages");
+    return saved ? JSON.parse(saved) : [];
+}
 
-    function formatMessageText(text) {
-        const imageRegex = /(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp))/gi;
-        text = text.replace(imageRegex, url => `<img class="embeddedImage" src="${url}">`);
+// ------------------------------
+// Save messages
+// ------------------------------
+function saveMessages(messages) {
+    localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
+}
 
-        const urlRegex = /(https?:\/\/[^\s]+)/gi;
-        text = text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color:#39ff14;">${url}</a>`);
+// ------------------------------
+// Detect image URLs and convert to <img>
+// ------------------------------
+function convertImageURLs(text) {
+    const imageExtensions = ['.gif', '.png', '.jpg', '.jpeg', '.webp'];
+    const trimmed = text.trim();
 
-        return text;
-    }
+    try {
+        const url = new URL(trimmed);
+        const lower = url.pathname.toLowerCase();
 
-    function loadMessages() {
-        const messages = JSON.parse(localStorage.getItem("shoutboxMessages")) || [];
-        const container = document.getElementById("messages");
-        container.innerHTML = "";
-
-        messages.forEach((entry, index) => {
-            const row = document.createElement("div");
-            row.className = "msgRow";
-
-            const header = document.createElement("div");
-            header.className = "msgHeader";
-
-            const nameTime = document.createElement("span");
-            nameTime.textContent = `[${entry.time}] ${entry.name}`;
-
-            const btns = document.createElement("div");
-            btns.className = "msgButtons";
-
-            const editBtn = document.createElement("button");
-            editBtn.innerHTML = "✏️";
-            editBtn.onclick = () => editMessage(index);
-
-            const delBtn = document.createElement("button");
-            delBtn.innerHTML = "❌";
-            delBtn.onclick = () => deleteMessage(index);
-
-            btns.appendChild(editBtn);
-            btns.appendChild(delBtn);
-
-            header.appendChild(nameTime);
-            header.appendChild(btns);
-
-            const content = document.createElement("div");
-            content.innerHTML = formatMessageText(entry.text);
-
-            row.appendChild(header);
-            row.appendChild(content);
-
-            container.appendChild(row);
-        });
-
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function getShoutGalleryList() {
-        const raw = JSON.parse(localStorage.getItem("shoutGallery")) || [];
-        return raw.map(item => {
-            if (typeof item === "string") {
-                return { url: item };
-            }
-            return item;
-        });
-    }
-
-    function saveShoutGalleryList(list) {
-        localStorage.setItem("shoutGallery", JSON.stringify(list));
-    }
-
-    function addToShoutGalleryFromUrl(url) {
-        const list = getShoutGalleryList();
-        list.push({ url });
-        saveShoutGalleryList(list);
-    }
-
-    function addToShoutGalleryFromMeta(meta) {
-        const list = getShoutGalleryList();
-        list.push(meta);
-        saveShoutGalleryList(list);
-    }
-
-    async function uploadShoutFileToGitHub(file) {
-        if (!GITHUB_TOKEN) {
-            alert("GitHub token not set in backdoor.html");
-            throw new Error("Missing token");
+        if (imageExtensions.some(ext => lower.endsWith(ext))) {
+            return `<img src="${url.href}" class="shout-image">`;
         }
-
-        const arrayBuffer = await file.arrayBuffer();
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-
-        const folder = "gallery/shoutbox";
-        const filename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-        const path = `${folder}/${filename}`;
-
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`, {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${GITHUB_TOKEN}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: `Add shoutbox image to ${folder}`,
-                content: base64,
-                branch: GITHUB_BRANCH
-            })
-        });
-
-        if (!res.ok) {
-            alert("GitHub upload failed from shoutbox.");
-            throw new Error("GitHub upload failed");
-        }
-
-        const data = await res.json();
-        return {
-            url: data.content.download_url,
-            path: data.content.path,
-            sha: data.content.sha
-        };
+    } catch (e) {
+        // Not a URL — ignore
     }
 
-    async function sendMessage() {
-        const name = document.getElementById("name").value.trim();
-        const textInput = document.getElementById("message");
-        const fileInput = document.getElementById("shoutFile");
+    return text;
+}
 
-        let text = textInput.value.trim();
-        const file = fileInput.files[0];
+// ------------------------------
+// Render messages
+// ------------------------------
+function renderMessages() {
+    const container = document.getElementById("shoutbox-messages");
+    container.innerHTML = "";
 
-        if (!name) {
-            alert("Enter your name first.");
-            return;
-        }
-        if (!text && !file) return;
+    const messages = loadMessages();
 
-        localStorage.setItem("shoutboxName", name);
+    messages.forEach((msg, index) => {
+        const div = document.createElement("div");
+        div.className = "shout";
 
-        let finalText = text;
+        div.innerHTML = `
+            <div class="shout-content">${convertImageURLs(msg.text)}</div>
+            <button class="delete-btn" onclick="deleteMessage(${index})">✖</button>
+        `;
 
-        if (file) {
-            try {
-                const meta = await uploadShoutFileToGitHub(file);
-                finalText = meta.url;
-                addToShoutGalleryFromMeta(meta);
-            } catch (e) {
-                console.error(e);
+        container.appendChild(div);
+    });
+}
+
+// ------------------------------
+// Add a new message
+// ------------------------------
+function addMessage() {
+    const input = document.getElementById("shoutbox-input");
+    let text = input.value.trim();
+
+    if (text === "") return;
+
+    const messages = loadMessages();
+    messages.push({ text });
+    saveMessages(messages);
+
+    input.value = "";
+    renderMessages();
+}
+
+// ------------------------------
+// Delete a message
+// ------------------------------
+function deleteMessage(index) {
+    const messages = loadMessages();
+    messages.splice(index, 1);
+    saveMessages(messages);
+    renderMessages();
+}
+
+// ------------------------------
+// Handle paste (auto‑detect GIFs)
+// ------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("shoutbox-input");
+
+    input.addEventListener("paste", async (event) => {
+        const clipboard = event.clipboardData;
+
+        // If user pastes an image file
+        for (const item of clipboard.items) {
+            if (item.type.startsWith("image/")) {
+                event.preventDefault();
+
+                const file = item.getAsFile();
+                const url = URL.createObjectURL(file);
+
+                input.value = url;
                 return;
             }
-        } else {
-            const imageRegex = /(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp))/gi;
-            const matches = text.match(imageRegex);
-            if (matches) {
-                matches.forEach(url => addToShoutGalleryFromUrl(url));
-            }
         }
 
-        const now = new Date();
-        const timestamp = now.toLocaleString();
+        // Otherwise allow normal paste
+    });
 
-        const messages = JSON.parse(localStorage.getItem("shoutboxMessages")) || [];
-        messages.push({ name, text: finalText, time: timestamp });
-        localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
-
-        textInput.value = "";
-        fileInput.value = "";
-        loadMessages();
-    }
-
-    function deleteMessage(index) {
-        const messages = JSON.parse(localStorage.getItem("shoutboxMessages")) || [];
-        messages.splice(index, 1);
-        localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
-        loadMessages();
-    }
-
-    function editMessage(index) {
-        const messages = JSON.parse(localStorage.getItem("shoutboxMessages")) || [];
-        const newText = prompt("Edit your message:", messages[index].text);
-
-        if (newText !== null && newText.trim() !== "") {
-            messages[index].text = newText.trim();
-            localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
-            loadMessages();
-        }
-    }
-
-    window.onload = () => {
-        const savedName = localStorage.getItem("shoutboxName");
-        if (savedName) document.getElementById("name").value = savedName;
-        loadMessages();
-    };
+    renderMessages();
+});
 </script>
-
-</body>
-</html>
