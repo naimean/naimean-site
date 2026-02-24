@@ -1,107 +1,104 @@
 <script>
-// ------------------------------
-// Load messages from localStorage
-// ------------------------------
-function loadMessages() {
-    const saved = localStorage.getItem("shoutboxMessages");
-    return saved ? JSON.parse(saved) : [];
-}
+document.addEventListener("DOMContentLoaded", () => {
 
-// ------------------------------
-// Save messages
-// ------------------------------
-function saveMessages(messages) {
-    localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
-}
-
-// ------------------------------
-// Detect image URLs and convert to <img>
-// ------------------------------
-function convertImageURLs(text) {
-    const imageExtensions = ['.gif', '.png', '.jpg', '.jpeg', '.webp'];
-
-    const trimmed = text.trim();
-
-    // Try to treat the text as a URL
-    try {
-        const url = new URL(trimmed);
-        const lower = url.pathname.toLowerCase();
-
-        // If URL ends with an image extension → embed it
-        if (imageExtensions.some(ext => lower.endsWith(ext))) {
-            return `<img src="${url.href}" class="shout-image" style="max-width:100%; border:1px solid #39ff14;">`;
-        }
-    } catch (e) {
-        // Not a URL — ignore
+    // ------------------------------
+    // Load messages from localStorage
+    // ------------------------------
+    function loadMessages() {
+        const saved = localStorage.getItem("shoutboxMessages");
+        return saved ? JSON.parse(saved) : [];
     }
 
-    return text; // Return original text if not an image URL
-}
+    // ------------------------------
+    // Save messages
+    // ------------------------------
+    function saveMessages(messages) {
+        localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
+    }
 
-// ------------------------------
-// Render messages
-// ------------------------------
-function renderMessages() {
-    const container = document.getElementById("shoutbox-messages");
-    container.innerHTML = "";
+    // ------------------------------
+    // Detect image URLs and convert to <img>
+    // ------------------------------
+    function convertImageURLs(text) {
+        const imageExtensions = ['.gif', '.png', '.jpg', '.jpeg', '.webp'];
+        const trimmed = text.trim();
 
-    const messages = loadMessages();
+        try {
+            const url = new URL(trimmed);
+            const lower = url.pathname.toLowerCase();
 
-    messages.forEach((msg, index) => {
-        const div = document.createElement("div");
-        div.className = "shout";
+            if (imageExtensions.some(ext => lower.endsWith(ext))) {
+                return `<img src="${url.href}" class="shout-image" style="max-width:100%; border:1px solid #39ff14;">`;
+            }
+        } catch (e) {
+            // Not a URL — ignore
+        }
 
-        div.innerHTML = `
-            <div class="shout-content" style="color:#39ff14;">
-                ${convertImageURLs(msg.text)}
-            </div>
-            <button class="delete-btn" onclick="deleteMessage(${index})"
-                style="background:none; border:none; color:#39ff14; float:right; cursor:pointer;">
-                ✖
-            </button>
-        `;
+        return text;
+    }
 
-        container.appendChild(div);
-    });
-}
+    // ------------------------------
+    // Render messages
+    // ------------------------------
+    function renderMessages() {
+        const container = document.getElementById("shoutbox-messages");
+        container.innerHTML = "";
 
-// ------------------------------
-// Add a new message
-// ------------------------------
-function addMessage() {
-    const input = document.getElementById("shoutbox-input");
-    let text = input.value.trim();
+        const messages = loadMessages();
 
-    if (text === "") return;
+        messages.forEach((msg, index) => {
+            const div = document.createElement("div");
+            div.className = "shout";
 
-    const messages = loadMessages();
-    messages.push({ text });
-    saveMessages(messages);
+            div.innerHTML = `
+                <div class="shout-content" style="color:#39ff14;">
+                    ${convertImageURLs(msg.text)}
+                </div>
+                <button class="delete-btn" onclick="deleteMessage(${index})"
+                    style="background:none; border:none; color:#39ff14; float:right; cursor:pointer;">
+                    ✖
+                </button>
+            `;
 
-    input.value = "";
-    renderMessages();
-}
+            container.appendChild(div);
+        });
+    }
 
-// ------------------------------
-// Delete a message
-// ------------------------------
-function deleteMessage(index) {
-    const messages = loadMessages();
-    messages.splice(index, 1);
-    saveMessages(messages);
-    renderMessages();
-}
+    // ------------------------------
+    // Add a new message
+    // ------------------------------
+    window.addMessage = function () {
+        const input = document.getElementById("shoutbox-input");
+        let text = input.value.trim();
 
-// ------------------------------
-// Handle paste (auto‑detect image files)
-// ------------------------------
-document.addEventListener("DOMContentLoaded", () => {
+        if (text === "") return;
+
+        const messages = loadMessages();
+        messages.push({ text });
+        saveMessages(messages);
+
+        input.value = "";
+        renderMessages();
+    }
+
+    // ------------------------------
+    // Delete a message
+    // ------------------------------
+    window.deleteMessage = function (index) {
+        const messages = loadMessages();
+        messages.splice(index, 1);
+        saveMessages(messages);
+        renderMessages();
+    }
+
+    // ------------------------------
+    // Handle paste (auto‑detect image files)
+    // ------------------------------
     const input = document.getElementById("shoutbox-input");
 
     input.addEventListener("paste", async (event) => {
         const clipboard = event.clipboardData;
 
-        // If user pastes an actual image file
         for (const item of clipboard.items) {
             if (item.type.startsWith("image/")) {
                 event.preventDefault();
@@ -113,10 +110,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
         }
-
-        // Otherwise normal paste
     });
 
+    // Initial render
     renderMessages();
+
 });
 </script>
