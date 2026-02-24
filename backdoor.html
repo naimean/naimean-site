@@ -1,24 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Naimean Backdoor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background:#000;
+            color:#39ff14;
+            font-family: monospace;
+            margin:0;
+            padding:20px;
+        }
+        .container {
+            display:flex;
+            flex-direction:column;
+            gap:20px;
+        }
+        .panel {
+            border:1px solid #39ff14;
+            padding:10px;
+        }
+        #shoutbox-messages {
+            max-height:300px;
+            overflow-y:auto;
+            border:1px solid #39ff14;
+            padding:5px;
+        }
+        .shout {
+            margin-bottom:8px;
+            position:relative;
+        }
+        .shout-image {
+            max-width:100%;
+            border:1px solid #39ff14;
+        }
+        .delete-btn {
+            position:absolute;
+            top:0;
+            right:0;
+            background:none;
+            border:none;
+            color:#39ff14;
+            cursor:pointer;
+        }
+        #shoutbox-input {
+            width:100%;
+            box-sizing:border-box;
+            background:#000;
+            color:#39ff14;
+            border:1px solid #39ff14;
+            padding:6px;
+            font-family:monospace;
+        }
+        #send-btn {
+            margin-top:6px;
+            background:#39ff14;
+            color:#000;
+            border:none;
+            padding:6px 10px;
+            cursor:pointer;
+            font-family:monospace;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="panel">
+        <h1>WELCOME TO THE BACKDOOR</h1>
+        <p>Backdoor Contents, etc…</p>
+    </div>
+
+    <div class="panel">
+        <h2>Shoutbox</h2>
+        <div id="shoutbox-messages"></div>
+
+        <textarea id="shoutbox-input"
+                  rows="2"
+                  placeholder="Your message (text, links, images)"></textarea>
+        <button id="send-btn" onclick="addMessage()">Send</button>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    // ------------------------------
-    // Load messages from localStorage
-    // ------------------------------
     function loadMessages() {
         const saved = localStorage.getItem("shoutboxMessages");
         return saved ? JSON.parse(saved) : [];
     }
 
-    // ------------------------------
-    // Save messages
-    // ------------------------------
     function saveMessages(messages) {
         localStorage.setItem("shoutboxMessages", JSON.stringify(messages));
     }
 
-    // ------------------------------
-    // Detect image URLs and convert to <img>
-    // ------------------------------
     function convertImageURLs(text) {
         const imageExtensions = ['.gif', '.png', '.jpg', '.jpeg', '.webp'];
         const trimmed = text.trim();
@@ -26,94 +101,72 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const url = new URL(trimmed);
             const lower = url.pathname.toLowerCase();
-
             if (imageExtensions.some(ext => lower.endsWith(ext))) {
-                return `<img src="${url.href}" class="shout-image" style="max-width:100%; border:1px solid #39ff14;">`;
+                return `<img src="${url.href}" class="shout-image">`;
             }
-        } catch (e) {
-            // Not a URL — ignore
-        }
-
+        } catch (e) {}
         return text;
     }
 
-    // ------------------------------
-    // Render messages
-    // ------------------------------
     function renderMessages() {
         const container = document.getElementById("shoutbox-messages");
+        if (!container) return;
         container.innerHTML = "";
 
         const messages = loadMessages();
-
         messages.forEach((msg, index) => {
             const div = document.createElement("div");
             div.className = "shout";
-
             div.innerHTML = `
-                <div class="shout-content" style="color:#39ff14;">
+                <div class="shout-content">
                     ${convertImageURLs(msg.text)}
                 </div>
-                <button class="delete-btn" onclick="deleteMessage(${index})"
-                    style="background:none; border:none; color:#39ff14; float:right; cursor:pointer;">
-                    ✖
-                </button>
+                <button class="delete-btn" onclick="deleteMessage(${index})">✖</button>
             `;
-
             container.appendChild(div);
         });
     }
 
-    // ------------------------------
-    // Add a new message
-    // ------------------------------
     window.addMessage = function () {
         const input = document.getElementById("shoutbox-input");
-        let text = input.value.trim();
-
-        if (text === "") return;
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
 
         const messages = loadMessages();
         messages.push({ text });
         saveMessages(messages);
-
         input.value = "";
         renderMessages();
-    }
+    };
 
-    // ------------------------------
-    // Delete a message
-    // ------------------------------
     window.deleteMessage = function (index) {
         const messages = loadMessages();
         messages.splice(index, 1);
         saveMessages(messages);
         renderMessages();
+    };
+
+    const input = document.getElementById("shoutbox-input");
+    if (input) {
+        input.addEventListener("paste", (event) => {
+            const clipboard = event.clipboardData;
+            if (!clipboard) return;
+
+            for (const item of clipboard.items) {
+                if (item.type.startsWith("image/")) {
+                    event.preventDefault();
+                    const file = item.getAsFile();
+                    const url = URL.createObjectURL(file);
+                    input.value = url;
+                    return;
+                }
+            }
+        });
     }
 
-    // ------------------------------
-    // Handle paste (auto‑detect image files)
-    // ------------------------------
-    const input = document.getElementById("shoutbox-input");
-
-    input.addEventListener("paste", async (event) => {
-        const clipboard = event.clipboardData;
-
-        for (const item of clipboard.items) {
-            if (item.type.startsWith("image/")) {
-                event.preventDefault();
-
-                const file = item.getAsFile();
-                const url = URL.createObjectURL(file);
-
-                input.value = url;
-                return;
-            }
-        }
-    });
-
-    // Initial render
     renderMessages();
-
 });
 </script>
+</body>
+</html>
