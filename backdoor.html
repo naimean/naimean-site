@@ -19,20 +19,23 @@ function saveMessages(messages) {
 // ------------------------------
 function convertImageURLs(text) {
     const imageExtensions = ['.gif', '.png', '.jpg', '.jpeg', '.webp'];
+
     const trimmed = text.trim();
 
+    // Try to treat the text as a URL
     try {
         const url = new URL(trimmed);
         const lower = url.pathname.toLowerCase();
 
+        // If URL ends with an image extension → embed it
         if (imageExtensions.some(ext => lower.endsWith(ext))) {
-            return `<img src="${url.href}" class="shout-image">`;
+            return `<img src="${url.href}" class="shout-image" style="max-width:100%; border:1px solid #39ff14;">`;
         }
     } catch (e) {
         // Not a URL — ignore
     }
 
-    return text;
+    return text; // Return original text if not an image URL
 }
 
 // ------------------------------
@@ -49,8 +52,13 @@ function renderMessages() {
         div.className = "shout";
 
         div.innerHTML = `
-            <div class="shout-content">${convertImageURLs(msg.text)}</div>
-            <button class="delete-btn" onclick="deleteMessage(${index})">✖</button>
+            <div class="shout-content" style="color:#39ff14;">
+                ${convertImageURLs(msg.text)}
+            </div>
+            <button class="delete-btn" onclick="deleteMessage(${index})"
+                style="background:none; border:none; color:#39ff14; float:right; cursor:pointer;">
+                ✖
+            </button>
         `;
 
         container.appendChild(div);
@@ -85,7 +93,7 @@ function deleteMessage(index) {
 }
 
 // ------------------------------
-// Handle paste (auto‑detect GIFs)
+// Handle paste (auto‑detect image files)
 // ------------------------------
 document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("shoutbox-input");
@@ -93,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("paste", async (event) => {
         const clipboard = event.clipboardData;
 
-        // If user pastes an image file
+        // If user pastes an actual image file
         for (const item of clipboard.items) {
             if (item.type.startsWith("image/")) {
                 event.preventDefault();
@@ -106,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // Otherwise allow normal paste
+        // Otherwise normal paste
     });
 
     renderMessages();
